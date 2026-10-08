@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.docx binary
+*.pdf binary
+*.lock binary
+uv.lock text eol=lf
+package-lock.json text eol=lf

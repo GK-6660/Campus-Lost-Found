@@ -1,4 +1,4 @@
-"""共用异常。E 维护，其他组只 raise。路由把它翻译成接口字段表里的错误 JSON。"""
+"""共用异常。组长维护，其他组只 raise。路由把它翻译成软件设计说明书里的错误 JSON。"""
 
 from dataclasses import dataclass
 

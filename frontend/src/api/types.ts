@@ -1,4 +1,4 @@
-/** 与 docs/接口字段表.md 第 2、3 节一致。 */
+/** 与 docs/软件设计说明书.md 第 5 节一致。 */
 
 export type Category =
   | "earphones"

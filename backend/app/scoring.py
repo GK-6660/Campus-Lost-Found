@@ -1,4 +1,4 @@
-"""纯打分。F 实现。不读数据库，不写数据库。公式见 docs/技术方案与架构.md 第 10 节。"""
+"""纯打分。F 实现。不读数据库，不写数据库。公式见 docs/软件设计说明书.md 第 5.7 节。"""
 
 from app.schemas import Item, Score, ScorePart
 

@@ -1,4 +1,4 @@
-"""资源形状，与 docs/接口字段表.md 第 2、3 节一致。这里不写业务。"""
+"""资源形状，与 docs/软件设计说明书.md 第 5 节一致。这里不写业务。"""
 
 from typing import Literal
 
@@ -64,7 +64,7 @@ class User(BaseModel):
 
 
 class StoredFile(BaseModel):
-    """函数架构里的 File。"""
+    """已上传的涂黑图。"""
 
     id: str
     mime: str

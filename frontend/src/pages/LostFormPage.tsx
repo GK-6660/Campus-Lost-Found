@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
-import { Alert, Button, Checkbox, Form, Input, Select, Space } from "antd";
+import { Alert, Button, Checkbox, ConfigProvider, Form, Input, Select, Space } from "antd";
+import enUS from "antd/locale/en_US";
+import zhCN from "antd/locale/zh_CN";
 import { ApiError, newRequestId, request } from "../api/client";
 import { createItem, publishItem, updateItem } from "../api/items";
 import type {
@@ -110,6 +112,126 @@ const fieldLabels: Record<keyof DraftFields, string> = {
   subscribe_matches: "通知设置",
 };
 
+type Language = "zh" | "en";
+
+// 只翻译界面文字；表单字段、枚举值和请求内容始终使用接口约定的值。
+const english: Record<string, string> = {
+  失物登记: "Report a lost item",
+  当前状态: "Current status",
+  草稿: "Draft",
+  已发布: "Published",
+  已找回: "Recovered",
+  已关闭: "Closed",
+  类别: "Category",
+  颜色: "Color",
+  品牌: "Brand",
+  "品牌（可选）": "Brand (optional)",
+  物品描述: "Item description",
+  "物品描述（可选）": "Item description (optional)",
+  丢失日期: "Date lost",
+  丢失时段: "Time of day lost",
+  去过的楼: "Visited buildings",
+  按顺序去过的楼: "Buildings visited, in order",
+  楼栋顺序设置: "Building order setting",
+  通知设置: "Notification setting",
+  耳机: "Earphones",
+  校园卡: "Campus card",
+  钥匙: "Keys",
+  水杯: "Water bottle",
+  书: "Book",
+  衣物: "Clothing",
+  电子产品: "Electronics",
+  伞: "Umbrella",
+  包: "Bag",
+  其他: "Other",
+  未知: "Unknown",
+  黑: "Black",
+  白: "White",
+  灰: "Gray",
+  红: "Red",
+  橙: "Orange",
+  黄: "Yellow",
+  绿: "Green",
+  蓝: "Blue",
+  紫: "Purple",
+  粉: "Pink",
+  棕: "Brown",
+  多色: "Multicolor",
+  上午: "Morning",
+  下午: "Afternoon",
+  晚上: "Evening",
+  图书馆: "Library",
+  "教学楼 A": "Teaching Building A",
+  "教学楼 B": "Teaching Building B",
+  一食堂: "Canteen 1",
+  二食堂: "Canteen 2",
+  宿舍区: "Dormitories",
+  体育馆: "Gym",
+  行政楼: "Administration Building",
+  请选择类别: "Select a category",
+  请选择颜色: "Select a color",
+  例如物品的品牌名称: "Enter the item's brand",
+  补充物品的外观等信息: "Describe the item's appearance or other details",
+  请选择时段: "Select a time of day",
+  请依次选择去过的楼: "Select buildings in the order you visited them",
+  "请按经过的先后顺序依次选择，最多八栋。调整顺序时，请清空后重新选择。":
+    "Select up to eight buildings in the order you visited them. To change the order, clear the selection and select again.",
+  我按当天经过的先后顺序填写了这些楼:
+    "I listed these buildings in the order I visited them that day",
+  "有新的匹配候选时，接收站内通知": "Notify me on this site when there are new matches",
+  保存草稿: "Save draft",
+  发布: "Publish",
+  重试上次提交: "Retry last submission",
+  刷新并载入服务器内容: "Reload the latest record",
+  发布前请选择物品类别: "Select an item category before publishing",
+  发布前请选择丢失日期: "Select the date lost before publishing",
+  发布前请选择丢失时段: "Select the time of day lost before publishing",
+  发布前请至少选择一栋去过的楼: "Select at least one visited building before publishing",
+  "品牌最多填写 40 个字符": "Brand must be 40 characters or fewer",
+  "物品描述最多填写 500 个字符": "Description must be 500 characters or fewer",
+  "请选择有效日期，格式为 YYYY-MM-DD": "Select a valid date in YYYY-MM-DD format",
+  请选择有效时段: "Select a valid time of day",
+  最多选择八栋楼: "Select no more than eight buildings",
+  "请检查表单中标出的字段。": "Please check the highlighted fields.",
+  "提交结果尚未确认，请点击“重试上次提交”。":
+    'The submission result is uncertain. Click "Retry last submission".',
+  "操作失败，请稍后再试。": "The action failed. Please try again later.",
+  "物品已被更新，请载入最新记录并核对后再操作。刷新会替换当前填写内容。":
+    "This item has changed. Reload and review the latest record before continuing. Reloading will replace your current input.",
+  "提交字段不符合要求，请检查并修改。": "Some fields are invalid. Please check and correct them.",
+  "请先登录，再继续操作。": "Please sign in before continuing.",
+  "没有权限进行此操作。": "You do not have permission to perform this action.",
+  "未找到该物品。": "The item was not found.",
+  "该拾获物品已归还。": "This found item has already been returned.",
+  "请求失败，请稍后再试。": "The request failed. Please try again later.",
+  "没有待提交的操作。": "There is no pending submission.",
+  "发布前请选择物品类别，并填写丢失日期、时段和至少一栋去过的楼。":
+    "Before publishing, select a category, the date and time of day lost, and at least one visited building.",
+  "尚未保存草稿。": "The draft has not been saved yet.",
+  "当前状态不能发布。": "This item cannot be published in its current state.",
+  "草稿已保存，但发布所需的信息尚未完整。":
+    "The draft was saved, but some information required for publishing is missing.",
+  "失物已发布。": "Your lost item has been published.",
+  "草稿已保存。": "Draft saved.",
+  "已载入最新记录，请核对后再操作。":
+    "The latest record has been loaded. Review it before continuing.",
+  "此页面用于失物登记，请打开对应的拾获页面。":
+    "This page is for lost items. Please open the found-item page for this record.",
+};
+
+// 服务端字段错误也使用同一组翻译，切换语言时保留并翻译已经显示的错误。
+for (const label of Object.values(fieldLabels)) {
+  english[label + "不能为空"] = english[label] + " is required";
+  english[label + "超过允许的长度或数量"] = english[label] + " exceeds the length or count limit";
+  english[label + "的内容不合法"] = english[label] + " is invalid";
+}
+const chinese = Object.fromEntries(Object.entries(english).map(([zh, en]) => [en, zh]));
+
+function translate(text: string, language: Language): string {
+  const original = chinese[text] ?? text;
+  return language === "en" ? (english[original] ?? original) : original;
+}
+
 function isFieldName(name: string): name is keyof DraftFields {
   return Object.hasOwn(fieldLabels, name);
 }
@@ -154,7 +276,7 @@ function isValidDate(value: string): boolean {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
-function publishErrors(fields: DraftFields) {
+function publishErrors(fields: DraftFields, language: Language = "zh") {
   const errors: { name: keyof DraftFields; errors: string[] }[] = [];
   if (!fields.category) errors.push({ name: "category", errors: ["发布前请选择物品类别"] });
   if (!fields.occurred_on) errors.push({ name: "occurred_on", errors: ["发布前请选择丢失日期"] });
@@ -165,7 +287,10 @@ function publishErrors(fields: DraftFields) {
       errors: ["发布前请至少选择一栋去过的楼"],
     });
   }
-  return errors;
+  return errors.map((field) => ({
+    ...field,
+    errors: field.errors.map((error) => translate(error, language)),
+  }));
 }
 
 function isFormError(error: unknown): boolean {
@@ -184,6 +309,9 @@ const rejectionCodes = [
 
 export default function LostFormPage({ initialItem, onLoginRequired }: Props) {
   const [form] = Form.useForm<LostFormValues>();
+  const [language, setLanguage] = useState<Language>("zh");
+  const languageRef = useRef<Language>("zh");
+  const t = (text: string) => translate(text, languageRef.current);
   const [item, setItem] = useState<Item | null>(initialItem ?? null);
   const itemRef = useRef<Item | null>(initialItem ?? null);
   const [pending, setPending] = useState<PendingWrite | null>(null);
@@ -193,6 +321,23 @@ export default function LostFormPage({ initialItem, onLoginRequired }: Props) {
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const editable = item === null || (item.type === "lost" && item.status === "draft");
+
+  function changeLanguage(next: Language) {
+    languageRef.current = next;
+    setLanguage(next);
+    form.setFields(
+      form.getFieldsError().flatMap(({ name, errors }) => {
+        const field = name[0];
+        return typeof field === "string" && isFieldName(field)
+          ? [{ name: field, errors: errors.map((error) => translate(error, next)) }]
+          : [];
+      }),
+    );
+  }
+
+  function localizedOptions<T extends string>(options: { label: string; value: T }[]) {
+    return options.map((option) => ({ ...option, label: t(option.label) }));
+  }
 
   function rememberPending(value: PendingWrite | null) {
     pendingRef.current = value;
@@ -221,7 +366,10 @@ export default function LostFormPage({ initialItem, onLoginRequired }: Props) {
     if (!(error instanceof ApiError)) {
       setNotice({
         type: "error",
-        text: error instanceof Error ? error.message : "操作失败，请稍后再试。",
+        text:
+          error instanceof Error && Object.hasOwn(english, error.message)
+            ? error.message
+            : "操作失败，请稍后再试。",
       });
       return;
     }
@@ -247,7 +395,7 @@ export default function LostFormPage({ initialItem, onLoginRequired }: Props) {
             : field.code === "too_long"
               ? label + "超过允许的长度或数量"
               : label + "的内容不合法";
-        fieldErrors.set(name, [...(fieldErrors.get(name) ?? []), text]);
+        fieldErrors.set(name, [...(fieldErrors.get(name) ?? []), t(text)]);
       }
       form.setFields([...fieldErrors].map(([name, errors]) => ({ name, errors })));
       setNotice({ type: "error", text: "提交字段不符合要求，请检查并修改。" });
@@ -258,7 +406,12 @@ export default function LostFormPage({ initialItem, onLoginRequired }: Props) {
       onLoginRequired?.();
       return;
     }
-    setNotice({ type: "error", text: error.message });
+    const errorText: Record<string, string> = {
+      forbidden: "没有权限进行此操作。",
+      not_found: "未找到该物品。",
+      found_already_returned: "该拾获物品已归还。",
+    };
+    setNotice({ type: "error", text: errorText[error.code] ?? "请求失败，请稍后再试。" });
   }
 
   async function sendPending(): Promise<Item> {
@@ -299,7 +452,7 @@ export default function LostFormPage({ initialItem, onLoginRequired }: Props) {
         const values = await form.validateFields();
         const fields = toFields(values);
         if (intent === "publish") {
-          const errors = publishErrors(fields);
+          const errors = publishErrors(fields, languageRef.current);
           if (errors.length) {
             form.setFields(errors);
             form.scrollToField(errors[0].name);
@@ -342,7 +495,7 @@ export default function LostFormPage({ initialItem, onLoginRequired }: Props) {
 
       if (intent === "publish" && record.status !== "open") {
         if (record.status !== "draft") throw new Error("当前状态不能发布。");
-        const errors = publishErrors(toFields(record));
+        const errors = publishErrors(toFields(record), languageRef.current);
         if (errors.length) {
           form.setFields(errors);
           setNotice({
@@ -405,140 +558,181 @@ export default function LostFormPage({ initialItem, onLoginRequired }: Props) {
         }[item.status];
 
   return (
-    <section>
-      <h1>失物登记</h1>
-      {statusText && <p>当前状态：{statusText}</p>}
-      {item?.type === "found" && (
-        <Alert type="error" showIcon message="此页面用于失物登记，请打开对应的拾获页面。" />
-      )}
-      {notice && (
-        <Alert type={notice.type} showIcon message={notice.text} style={{ marginBottom: 16 }} />
-      )}
-      {needsRefresh && (
-        <Button
-          onClick={refreshItem}
-          loading={busy === "refresh"}
-          disabled={busy !== null}
-          style={{ marginBottom: 16 }}
-        >
-          刷新并载入服务器内容
-        </Button>
-      )}
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={{
-          ...toFields(initialItem ?? {}),
-          visited_places: initialItem?.visited_places ?? [],
-        }}
-        disabled={actionsDisabled}
-        onValuesChange={(changed: LostFormValues) => {
-          setNotice(null);
-          form.setFields(
-            Object.keys(changed)
-              .filter(isFieldName)
-              .map((name) => ({ name, errors: [] })),
-          );
-        }}
-      >
-        <Form.Item name="category" label="类别（发布时必填）">
-          <Select<Category> options={categoryOptions} placeholder="请选择类别" allowClear />
-        </Form.Item>
-        <Form.Item name="color" label="颜色">
-          <Select<Color> options={colorOptions} placeholder="请选择颜色" allowClear />
-        </Form.Item>
-        <Form.Item
-          name="brand"
-          label="品牌（可选）"
-          rules={[{ max: 40, message: "品牌最多填写 40 个字符" }]}
-        >
-          <Input placeholder="例如物品的品牌名称" maxLength={40} showCount />
-        </Form.Item>
-        <Form.Item
-          name="description"
-          label="物品描述（可选）"
-          rules={[{ max: 500, message: "物品描述最多填写 500 个字符" }]}
-        >
-          <Input.TextArea placeholder="补充物品的外观等信息" rows={4} maxLength={500} showCount />
-        </Form.Item>
-        <Form.Item
-          name="occurred_on"
-          label="丢失日期"
-          rules={[
-            {
-              validator: (_, value: string | null | undefined) =>
-                !value || isValidDate(value)
-                  ? Promise.resolve()
-                  : Promise.reject(new Error("请选择有效日期，格式为 YYYY-MM-DD")),
-            },
-          ]}
-        >
-          <Input type="date" />
-        </Form.Item>
-        <Form.Item
-          name="day_part"
-          label="丢失时段"
-          rules={[
-            {
-              type: "enum",
-              enum: dayPartOptions.map((option) => option.value),
-              message: "请选择有效时段",
-            },
-          ]}
-        >
-          <Select<DayPart> options={dayPartOptions} placeholder="请选择时段" allowClear />
-        </Form.Item>
-        <Form.Item
-          name="visited_places"
-          label="按顺序去过的楼"
-          extra="请按经过的先后顺序依次选择，最多八栋。调整顺序时，请清空后重新选择。"
-          rules={[{ type: "array", max: 8, message: "最多选择八栋楼" }]}
-        >
-          <Select<PlaceCode[]>
-            mode="multiple"
-            options={placeOptions}
-            maxCount={8}
-            placeholder="请依次选择去过的楼"
-            allowClear
+    <ConfigProvider locale={language === "zh" ? zhCN : enUS}>
+      <section lang={language === "zh" ? "zh-CN" : "en"}>
+        <Space style={{ marginBottom: 16 }}>
+          <span>语言language：</span>
+          <Select<Language>
+            aria-label="界面语言 / Interface language"
+            value={language}
+            onChange={changeLanguage}
+            options={[
+              { label: "中文", value: "zh" },
+              { label: "English", value: "en" },
+            ]}
+            style={{ minWidth: 120 }}
           />
-        </Form.Item>
-        <Form.Item name="places_ordered" valuePropName="checked">
-          <Checkbox>我按当天经过的先后顺序填写了这些楼</Checkbox>
-        </Form.Item>
-        <Form.Item name="subscribe_matches" valuePropName="checked">
-          <Checkbox>有新的匹配候选时，接收站内通知</Checkbox>
-        </Form.Item>
-        <Form.Item>
-          <Space wrap>
-            <Button
-              htmlType="button"
-              onClick={() => void submit("save")}
-              loading={busy === "save"}
-              disabled={actionsDisabled}
-            >
-              保存草稿
-            </Button>
-            <Button
-              type="primary"
-              htmlType="button"
-              onClick={() => void submit("publish")}
-              loading={busy === "publish"}
-              disabled={actionsDisabled}
-            >
-              发布
-            </Button>
-            {pending && (
+        </Space>
+        <h1>{t("失物登记")}</h1>
+        {statusText && (
+          <p>
+            {t("当前状态")}：{t(statusText)}
+          </p>
+        )}
+        {item?.type === "found" && (
+          <Alert type="error" showIcon message={t("此页面用于失物登记，请打开对应的拾获页面。")} />
+        )}
+        {notice && (
+          <Alert
+            type={notice.type}
+            showIcon
+            message={t(notice.text)}
+            style={{ marginBottom: 16 }}
+          />
+        )}
+        {needsRefresh && (
+          <Button
+            onClick={refreshItem}
+            loading={busy === "refresh"}
+            disabled={busy !== null}
+            style={{ marginBottom: 16 }}
+          >
+            {t("刷新并载入服务器内容")}
+          </Button>
+        )}
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            ...toFields(initialItem ?? {}),
+            visited_places: initialItem?.visited_places ?? [],
+          }}
+          disabled={actionsDisabled}
+          onValuesChange={(changed: LostFormValues) => {
+            setNotice(null);
+            form.setFields(
+              Object.keys(changed)
+                .filter(isFieldName)
+                .map((name) => ({ name, errors: [] })),
+            );
+          }}
+        >
+          <Form.Item name="category" label={t("类别")}>
+            <Select<Category>
+              options={localizedOptions(categoryOptions)}
+              placeholder={t("请选择类别")}
+              allowClear
+            />
+          </Form.Item>
+          <Form.Item name="color" label={t("颜色")}>
+            <Select<Color>
+              options={localizedOptions(colorOptions)}
+              placeholder={t("请选择颜色")}
+              allowClear
+            />
+          </Form.Item>
+          <Form.Item
+            name="brand"
+            label={t("品牌（可选）")}
+            rules={[{ max: 40, message: t("品牌最多填写 40 个字符") }]}
+          >
+            <Input placeholder={t("例如物品的品牌名称")} maxLength={40} showCount />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label={t("物品描述（可选）")}
+            rules={[{ max: 500, message: t("物品描述最多填写 500 个字符") }]}
+          >
+            <Input.TextArea
+              placeholder={t("补充物品的外观等信息")}
+              rows={4}
+              maxLength={500}
+              showCount
+            />
+          </Form.Item>
+          <Form.Item
+            name="occurred_on"
+            label={t("丢失日期")}
+            rules={[
+              {
+                validator: (_, value: string | null | undefined) =>
+                  !value || isValidDate(value)
+                    ? Promise.resolve()
+                    : Promise.reject(new Error(t("请选择有效日期，格式为 YYYY-MM-DD"))),
+              },
+            ]}
+          >
+            <Input type="date" />
+          </Form.Item>
+          <Form.Item
+            name="day_part"
+            label={t("丢失时段")}
+            rules={[
+              {
+                type: "enum",
+                enum: dayPartOptions.map((option) => option.value),
+                message: t("请选择有效时段"),
+              },
+            ]}
+          >
+            <Select<DayPart>
+              options={localizedOptions(dayPartOptions)}
+              placeholder={t("请选择时段")}
+              allowClear
+            />
+          </Form.Item>
+          <Form.Item
+            name="visited_places"
+            label={t("按顺序去过的楼")}
+            extra={t("请按经过的先后顺序依次选择，最多八栋。调整顺序时，请清空后重新选择。")}
+            rules={[{ type: "array", max: 8, message: t("最多选择八栋楼") }]}
+          >
+            <Select<PlaceCode[]>
+              mode="multiple"
+              options={localizedOptions(placeOptions)}
+              maxCount={8}
+              placeholder={t("请依次选择去过的楼")}
+              allowClear
+            />
+          </Form.Item>
+          <Form.Item name="places_ordered" valuePropName="checked">
+            <Checkbox>{t("我按当天经过的先后顺序填写了这些楼")}</Checkbox>
+          </Form.Item>
+          <Form.Item name="subscribe_matches" valuePropName="checked">
+            <Checkbox>{t("有新的匹配候选时，接收站内通知")}</Checkbox>
+          </Form.Item>
+          <Form.Item>
+            <Space wrap>
               <Button
                 htmlType="button"
-                onClick={() => void submit(pending.intent, true)}
-                disabled={busy !== null}
+                onClick={() => void submit("save")}
+                loading={busy === "save"}
+                disabled={actionsDisabled}
               >
-                重试上次提交
+                {t("保存草稿")}
               </Button>
-            )}
-          </Space>
-        </Form.Item>
-      </Form>
-    </section>
+              <Button
+                type="primary"
+                htmlType="button"
+                onClick={() => void submit("publish")}
+                loading={busy === "publish"}
+                disabled={actionsDisabled}
+              >
+                {t("发布")}
+              </Button>
+              {pending && (
+                <Button
+                  htmlType="button"
+                  onClick={() => void submit(pending.intent, true)}
+                  disabled={busy !== null}
+                >
+                  {t("重试上次提交")}
+                </Button>
+              )}
+            </Space>
+          </Form.Item>
+        </Form>
+      </section>
+    </ConfigProvider>
   );
 }

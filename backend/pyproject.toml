@@ -17,6 +17,10 @@ dependencies = [
 [tool.uv]
 package = false
 
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
@@ -31,6 +35,7 @@ pythonpath = ["."]
 
 [dependency-groups]
 dev = [
+    "httpx2>=2.13.1",
     "pytest>=8",
     "ruff>=0.16.9",
 ]

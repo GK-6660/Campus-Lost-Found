@@ -108,6 +108,8 @@ def _publish_fields(item: Item) -> list[FieldError]:
     if item.day_part is None:
         fields.append(FieldError("day_part", "required"))
     if item.type == "lost":
+        if item.category is None:
+            fields.append(FieldError("category", "required"))
         places = item.visited_places or []
         if not places:
             fields.append(FieldError("visited_places", "required"))

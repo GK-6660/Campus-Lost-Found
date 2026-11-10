@@ -11,6 +11,7 @@ from app.schemas import MatchList, User
 router = APIRouter(tags=["matches"])
 
 
-@router.get("/items/{item_id}/matches")
+@router.get("/items/{item_id}/matches", response_model=MatchList)
 def get_matches(item_id: str, user: Annotated[User, Depends(require_user)]) -> MatchList:
+    """查询本人物品的候选；无候选时返回空列表，对方仅含公开字段。"""
     return MatchList(item_id=item_id, matches=list_matches(user, item_id))

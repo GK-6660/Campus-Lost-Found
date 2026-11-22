@@ -118,6 +118,7 @@ def test_publish_missing_place_is_rejected() -> None:
         {
             "type": "lost",
             "request_id": "r-1",
+            "category": "earphones",
             "occurred_on": "2026-09-29",
             "day_part": "morning",
         },
@@ -143,6 +144,57 @@ def test_publish_missing_place_is_rejected() -> None:
     # 被拒绝就是没发布：状态和版本都不能动
     assert items.ITEMS[created["id"]].status == "draft"
     assert items.ITEMS[created["id"]].version == 1
+
+
+@pytest.mark.parametrize("category_fields", [{}, {"category": None}])
+def test_publish_lost_without_category_is_rejected(category_fields: dict) -> None:
+    """未填或明确填 null 都不能发布，失败不改变状态、版本和过期日。"""
+    owner = _user()
+    item = _create(
+        owner,
+        type="lost",
+        occurred_on="2026-09-29",
+        day_part="morning",
+        visited_places=["library"],
+        **category_fields,
+    )
+    status, body = _call(
+        "POST",
+        f"/api/v1/items/{item.id}/publish",
+        {"version": 1, "request_id": "r-publish"},
+        owner,
+    )
+    assert status == 422
+    assert body["error"]["code"] == "validation_error"
+    assert body["error"]["fields"] == [{"name": "category", "code": "required"}]
+    assert item.status == "draft"
+    assert item.version == 1
+    assert item.expires_on is None
+
+
+def test_publish_lost_with_unknown_category_is_allowed(monkeypatch: pytest.MonkeyPatch) -> None:
+    asked: list[str] = []
+    monkeypatch.setattr(match, "rematch_for_lost", asked.append)
+    owner = _user()
+    item = _create(
+        owner,
+        type="lost",
+        category="unknown",
+        occurred_on="2026-09-29",
+        day_part="morning",
+        visited_places=["library"],
+    )
+    status, body = _call(
+        "POST",
+        f"/api/v1/items/{item.id}/publish",
+        {"version": 1, "request_id": "r-publish"},
+        owner,
+    )
+    assert status == 200
+    assert body["category"] == "unknown"
+    assert body["status"] == "open"
+    assert body["version"] == 2
+    assert asked == [item.id]
 
 
 def test_update_with_stale_version_conflicts() -> None:
@@ -180,6 +232,7 @@ def test_publish_lost_opens_item_and_asks_for_matches(monkeypatch: pytest.Monkey
     item = _create(
         owner,
         type="lost",
+        category="earphones",
         occurred_on="2026-09-29",
         day_part="evening",
         visited_places=["library", "canteen_1"],
@@ -282,6 +335,7 @@ def test_close_requires_open_status(monkeypatch: pytest.MonkeyPatch) -> None:
     item = _create(
         owner,
         type="lost",
+        category="earphones",
         occurred_on="2026-09-29",
         day_part="morning",
         visited_places=["dorm"],
@@ -394,6 +448,7 @@ def test_lock_returns_live_row_and_returned_pair_bumps_both(
     lost = _create(
         owner,
         type="lost",
+        category="earphones",
         occurred_on="2026-09-29",
         day_part="morning",
         visited_places=["library"],

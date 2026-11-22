@@ -11,15 +11,17 @@ from app.schemas import Notification, NotificationList, User
 router = APIRouter(tags=["notifications"])
 
 
-@router.get("/notifications")
+@router.get("/notifications", response_model=NotificationList)
 def get_notifications(user: Annotated[User, Depends(require_user)]) -> NotificationList:
+    """返回当前用户的未读总数及最多 100 条通知，新的在前。"""
     unread_count, items = list_for(user.id)
     return NotificationList(unread_count=unread_count, items=items)
 
 
-@router.post("/notifications/{notification_id}/read")
+@router.post("/notifications/{notification_id}/read", response_model=Notification)
 def post_read(
     notification_id: str,
     user: Annotated[User, Depends(require_user)],
 ) -> Notification:
+    """将本人的通知标为已读；无请求体，不使用 request_id 幂等。"""
     return mark_read(user.id, notification_id)
